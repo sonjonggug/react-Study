@@ -1,88 +1,112 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState } from 'react';
+import { BrowserRouter as Router, Routes, Route, Link, Navigate } from 'react-router-dom';
+import Chatting from './Chatting';
 import axios from 'axios';
 
-function ChatApp() {
-  /**
-   * 컴포넌트의 로컬 상태 관리: useState를 사용하여 컴포넌트 내에서 로컬 상태를 선언하고 업데이트할 수 있습니다.
-   * 예를 들어, 버튼의 클릭 여부, 입력 필드의 값을 저장하는 등의 상태를 관리할 수 있습니다.
-   */
-  const [messages, setMessages ] = useState([]); // 채팅 메시지 배열 | messages = key | setMessages = value
-  const [inputText, setInputText] = useState(''); // 사용자 입력값
-  const [isWaiting, setIsWaiting] = useState(false); // 응답 대기 여부 상태
-  const chatMessagesRef = useRef(null); // chat-messages 요소에 대한 ref
+function LoginPage({ setIsLoggedIn }) {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
 
+  const handleLogin = async (e) => {
+    //  이벤트의 기본 동작을 취소하는 메서드
+    e.preventDefault();
   
-
-  useEffect(() => {
-    // 컴포넌트가 렌더링될 때마다 스크롤을 아래로 내립니다.
-    chatMessagesRef.current.scrollTop = chatMessagesRef.current.scrollHeight;
-  }, [messages]);
-
-  /**
-   * 사용자 메시지 전달 
-   * 전달 후 입력값 초기화 후 readOnly 상태로 변경 및 placeholder 값 변경
-   */
-  const sendMessage = async () => {
     try {
+      // axios를 사용하여 서버에 로그인 요청을 보냅니다.
+      const response = await axios.post('http://211.253.25.72:8080/api/members/login', 
+      { email :  email ,
+        password: password
+      }
+      );
+        // 로그인에 필요한 데이터 (예: 이메일, 비밀번호)
       
-      // 입력 창을 초기화합니다.
-      setInputText('');
-      // 응답 대기 중임을 표시
-      setIsWaiting(true); 
-      // 사용자 입력값을 서버의 API에 전송합니다.
-      const response = await axios.post('http://211.253.25.72:8080/api/external/chatGpt', { request: "채팅하듯이 : "+ inputText });
-
-      let result = response.data.msg +" [" + new Date().toISOString().replace(/T/, ' ').replace(/\..+/, '') + "]";
-      // 새로운 메시지를 기존 메시지 배열에 추가합니다.
-      const newMessage = { text: inputText +" [" + new Date().toISOString().replace(/T/, ' ').replace(/\..+/, '') + "]", response: result};
-      setMessages([...messages, newMessage]);
-     
+  
+      // 로그인 성공 여부에 따라 setIsLoggedIn을 설정합니다.
+      if (response.data.statusCode === "2.00") {
+        alert("성공");
+        setIsLoggedIn(true);
+      } else {
+        alert("실패");
+        setIsLoggedIn(false);
+      }
     } catch (error) {
-      alert("알수없는 에러---> " + error);   
-    }  finally {
-      setIsWaiting(false); // 응답 대기 종료
-    }
-  };
-
-  /**
-   * 엔터 사용 가능하게끔 
-   */
-  const handleKeyPress = (e) => {
-    if (e.key === 'Enter') {
-      sendMessage();
+      console.error('Error during login:', error);
+      // 로그인 요청 실패 시에도 setIsLoggedIn을 설정합니다.
+      setIsLoggedIn(false);
     }
   };
 
   return (
-    <div className="chat-app">
-      {/* 채팅 입력창과 전송 버튼을 렌더링하고 상태와 이벤트 핸들러를 연결합니다 */}
-      <div className="chat-input">       
+    <div>
+      <h1>Login Page</h1>
+      <form onSubmit={handleLogin}>
         <input
-          type="text"
-          value={inputText}
-          onChange={(e) => setInputText(e.target.value)}
-          onKeyPress={handleKeyPress} // 엔터 키 이벤트 처리를 위한 핸들러 추가
-          placeholder={isWaiting ? '응답을 대기중입니다' : '메시지를 입력하세요'} // 응답 대기 여부에 따라 플레이스홀더 변경
-          readOnly={isWaiting} // 응답 대기 중일 때는 읽기 전용으로 설정
-          style={{ border: "1px solid black", width: "450px" , marginBottom: "7px"}}
-          
+          type="email"
+          placeholder="Email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
         />
-        <button onClick={sendMessage}>Send</button>
-      </div>
-
-       {/* 채팅 대화창에 메시지를 표시합니다 */}
-       <div className="chat-messages" style={{ border: "1px solid black", width: "500px", height: "300px", overflowY: "auto" }} ref={chatMessagesRef}> 
-        {messages.map((message, index) => (
-          <div key={index} className="message">
-            <div>사용자: {message.text}                        
-            </div>
-            <div>응답: {message.response}</div>
-          </div>
-        ))}
-      </div>
-      
+        <input
+          type="password"
+          placeholder="Password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+        />
+        <button type="submit">Login</button>
+      </form>
     </div>
   );
 }
 
-export default ChatApp;
+function HomePage() {
+  return (
+    <div>
+      <h1>Home Page</h1>
+      <p>Welcome to the home page!</p>
+    </div>
+  );
+}
+
+function PrivateRoute({ isLoggedIn, ...rest }) {
+  // ...  <Route path="/chatting" element={<Chatting />} />
+
+  return isLoggedIn ? ( 
+    <Routes>
+    <Route {...rest} element={<Chatting />} />
+    </Routes>
+  ) : (
+    <Navigate to="/login" replace />
+  );
+}
+
+function App() {
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  return (
+    <Router>
+      <nav>
+        <ul>
+          <li>
+            <Link to="/">Home</Link>
+          </li>
+          <li>
+            {isLoggedIn ? (
+              // 로그인 상태에 따라 다른 링크를 표시합니다.
+              <Link to="/chatting">Chatting</Link>
+            ) : (
+              <Link to="/login">Login</Link>
+            )}
+          </li>
+        </ul>
+      </nav>
+
+      <Routes>
+        <Route path="/login" element={<LoginPage setIsLoggedIn={setIsLoggedIn} />} />
+        <Route path="/chatting" element={<PrivateRoute isLoggedIn={isLoggedIn} />} />
+        <Route path="/" element={<HomePage />} />
+      </Routes>
+    </Router>
+  );
+}
+
+export default App;
