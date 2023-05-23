@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import axios from 'axios';
 
-function ChatApp() {
+function Chatting() {
   /**
    * 컴포넌트의 로컬 상태 관리: useState를 사용하여 컴포넌트 내에서 로컬 상태를 선언하고 업데이트할 수 있습니다.
    * 예를 들어, 버튼의 클릭 여부, 입력 필드의 값을 저장하는 등의 상태를 관리할 수 있습니다.
@@ -85,4 +85,4 @@ function ChatApp() {
   );
 }
 
-export default ChatApp;
+export default Chatting;
