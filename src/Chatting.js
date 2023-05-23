@@ -23,18 +23,25 @@ function Chatting() {
    * 전달 후 입력값 초기화 후 readOnly 상태로 변경 및 placeholder 값 변경
    */
   const sendMessage = async () => {
-    try {
-      
+    try {      
       // 입력 창을 초기화합니다.
       setInputText('');
       // 응답 대기 중임을 표시
       setIsWaiting(true); 
       // 사용자 입력값을 서버의 API에 전송합니다.
-      const response = await axios.post('http://211.253.25.72:8080/api/external/chatGpt', { request: "채팅하듯이 : "+ inputText });
+      const response = await axios.post('http://211.253.25.72:8080/api/external/chatGpt',
+      { request: "채팅하듯이 : "+ inputText });
 
-      let result = response.data.msg +" [" + new Date().toISOString().replace(/T/, ' ').replace(/\..+/, '') + "]";
-      // 새로운 메시지를 기존 메시지 배열에 추가합니다.
-      const newMessage = { text: inputText +" [" + new Date().toISOString().replace(/T/, ' ').replace(/\..+/, '') + "]", response: result};
+      let question = inputText +" [" + new Date().toISOString().replace(/T/, ' ').replace(/\..+/, '') + "]" ;
+      let answer = response.data.msg +" [" + new Date().toISOString().replace(/T/, ' ').replace(/\..+/, '') + "]";
+      
+      /* 
+       Key : text , Value : question
+       Key : response , Value : answer 로 이루어진 객체생성         
+      */
+      const newMessage = { text: question , response: answer};
+                           
+      // ...은 배열 전개 연산자로, messages 배열을 확장하여 새로운 요소 newMessage를 추가
       setMessages([...messages, newMessage]);
      
     } catch (error) {
@@ -64,10 +71,10 @@ function Chatting() {
           onKeyPress={handleKeyPress} // 엔터 키 이벤트 처리를 위한 핸들러 추가
           placeholder={isWaiting ? '응답을 대기중입니다' : '메시지를 입력하세요'} // 응답 대기 여부에 따라 플레이스홀더 변경
           readOnly={isWaiting} // 응답 대기 중일 때는 읽기 전용으로 설정
-          style={{ border: "1px solid black", width: "450px" , marginBottom: "7px"}}
+          style={{ border: "1px solid black", width: "450px" , marginBottom: "7px" , height: "18px"}}
           
         />
-        <button onClick={sendMessage}>Send</button>
+        <button onClick={sendMessage}>Send</button>        
       </div>
 
        {/* 채팅 대화창에 메시지를 표시합니다 */}
